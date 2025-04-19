@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>1本だけオープン・カラフル割り箸くじ</title>
+    <style>
+        :root {
+            --stick-width: 40px;
+            --stick-height: 240px;
+            --tip-height: 50px;
+            --body-color: #deb887;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fafafa;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 6px;
+            font-size: 22px;
+        }
+
+        /* ── 賭け用ドット ── */
+        #legend {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 2px rgba(0, 0, 0, .25);
+        }
+
+        /* ── 割り箸トレイ ── */
+        #tray {
+            display: flex;
+            gap: 14px;
+            perspective: 800px;
+            user-select: none;
+        }
+
+        /* ── 割り箸本体 ── */
+        .stick {
+            position: relative;
+            width: var(--stick-width);
+            height: var(--stick-height);
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform .6s cubic-bezier(.5, -0.2, .3, 1.5);
+        }
+
+        .stick.revealed {
+            transform: translateY(-40px) rotateX(-20deg);
+            cursor: default;
+        }
+
+        .body,
+        .tip {
+            position: absolute;
+            left: 0;
+            width: 100%;
+        }
+
+        .body {
+            bottom: 0;
+            height: calc(var(--stick-height) - var(--tip-height));
+            background: var(--body-color);
+            border-radius: 4px 4px 2px 2px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, .15);
+        }
+
+        .tip {
+            top: 0;
+            height: 0;
+            overflow: hidden;
+            transition: height .5s ease-out;
+        }
+
+        .tip-inner {
+            width: 100%;
+            height: var(--tip-height);
+            background: var(--tip-color);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>色を予想してから1本クリック！</h1>
+    <div id="legend"></div>
+    <div id="tray"></div>
+
+    <script>
+        (() => {
+            /* ── 誰でも識別しやすいベーシック 6 色 ── */
+            const palette = [
+                '#e74c3c', // 赤
+                '#3498db', // 青
+                '#f1c40f', // 黄
+                '#CCCCCC', // 白
+                '#e74c3c', // 赤
+                '#3498db', // 青
+                '#f1c40f', // 黄
+                '#CCCCCC', // 白
+            ];
+
+            const NUM_STICKS = palette.length;        // 何本で遊ぶか
+
+            /* 足りなければ自動で色を補充 */
+            while (palette.length < NUM_STICKS) {
+                const hue = Math.floor(Math.random() * 360);
+                palette.push(`hsl(${hue} 70% 50%)`);
+            }
+
+            /* ── パレット表示（順序固定） ── */
+            const legend = document.getElementById('legend');
+            palette.slice(0, NUM_STICKS / 2).forEach(col => {
+                const d = document.createElement('span');
+                d.className = 'dot';
+                d.style.background = col;
+                legend.appendChild(d);
+            });
+
+            const tray = document.getElementById('tray');
+
+            /* ── 当たり色をパレット側で決定 ── */
+            const winningPaletteIndex = Math.floor(Math.random() * NUM_STICKS);
+
+            /* ── 割り箸の表示順を毎回シャッフル ── */
+            const order = [...Array(NUM_STICKS).keys()];
+            for (let i = order.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [order[i], order[j]] = [order[j], order[i]];
+            }
+
+            /* ── 棒を生成 ── */
+            let alreadyPicked = false;
+
+            order.forEach(idx => {
+                const color = palette[idx];
+                const stick = document.createElement('div');
+                stick.className = 'stick';
+                stick.style.setProperty('--tip-color', color);
+
+                /* 当たり棒フラグ（ゲーム判定用） */
+                if (idx === winningPaletteIndex) stick.dataset.win = 'true';
+
+                stick.innerHTML = `
+            <div class="tip"><div class="tip-inner"></div></div>
+            <div class="body"></div>`;
+                tray.appendChild(stick);
+
+                /* クリックで自分だけオープン */
+                stick.addEventListener('click', () => {
+                    if (alreadyPicked) window.location.reload();
+                    if (alreadyPicked || stick.classList.contains('revealed')) return;
+                    reveal(stick);
+                    alreadyPicked = true;      // 一度開いたら他の棒は選べない
+                    /* 結果を知らせたい場合はここで alert などを足して下さい */
+                });
+            });
+
+            /* ── 先端を伸ばすアニメーション ── */
+            function reveal(stick) {
+                stick.classList.add('revealed');
+                const tip = stick.querySelector('.tip');
+                requestAnimationFrame(() => {
+                    tip.style.height = getComputedStyle(document.documentElement)
+                        .getPropertyValue('--tip-height');
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>
