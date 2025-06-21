@@ -430,9 +430,8 @@
             <button class="add-prize-btn" id="add-prize">色と景品を追加</button>
             <button class="save-settings-btn" id="save-settings">設定を保存</button>
             <div class="export-import-buttons">
-                <button class="export-btn" id="export-settings">設定をエクスポート</button>
-                <button class="import-btn" id="import-settings">設定をインポート</button>
-                <input type="file" id="file-input" class="file-input" accept=".json">
+                <button class="export-btn" id="export-settings">設定をコピー</button>
+                <button class="import-btn" id="import-settings">設定を貼り付け</button>
             </div>
         </div>
     </div>
@@ -618,10 +617,9 @@
             /* ── エクスポート/インポート機能 ── */
             const exportBtn = document.getElementById('export-settings');
             const importBtn = document.getElementById('import-settings');
-            const fileInput = document.getElementById('file-input');
 
-            // エクスポート機能
-            exportBtn.addEventListener('click', () => {
+            // エクスポート機能（クリップボードにコピー）
+            exportBtn.addEventListener('click', async () => {
                 const currentPrizes = JSON.parse(localStorage.getItem('stickPrizes')) || defaultPrizes;
                 const exportData = {
                     version: '1.0',
@@ -629,35 +627,42 @@
                     exportedAt: new Date().toISOString()
                 };
 
-                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `stick-prizes-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                const jsonString = JSON.stringify(exportData, null, 2);
+                
+                try {
+                    await navigator.clipboard.writeText(jsonString);
+                    alert('設定をクリップボードにコピーしました。');
+                } catch (err) {
+                    // フォールバック: テキストエリアを使用
+                    const textarea = document.createElement('textarea');
+                    textarea.value = jsonString;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('設定をクリップボードにコピーしました。');
+                }
             });
 
-            // インポートボタンクリック時
-            importBtn.addEventListener('click', () => {
-                fileInput.click();
-            });
+            // インポート機能（クリップボードから貼り付け）
+            importBtn.addEventListener('click', async () => {
+                try {
+                    // クリップボードから読み取り
+                    const clipboardText = await navigator.clipboard.readText();
+                    
+                    if (!clipboardText) {
+                        alert('クリップボードにデータがありません。先に設定データをコピーしてください。');
+                        return;
+                    }
 
-            // ファイル選択時の処理
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
                     try {
-                        const importData = JSON.parse(event.target.result);
+                        const importData = JSON.parse(clipboardText);
                         
                         // バリデーション
                         if (!importData.prizes || !Array.isArray(importData.prizes)) {
-                            throw new Error('不正なファイル形式です');
+                            throw new Error('不正なデータ形式です');
                         }
 
                         // 各景品データのバリデーション
@@ -674,14 +679,40 @@
                         localStorage.setItem('stickPrizes', JSON.stringify(validPrizes));
                         alert(`${validPrizes.length}個の景品設定をインポートしました。ページをリロードして反映します。`);
                         window.location.reload();
-                    } catch (error) {
-                        alert('インポートに失敗しました: ' + error.message);
+                    } catch (parseError) {
+                        alert('クリップボードのデータが正しい形式ではありません。');
                     }
-                };
-                reader.readAsText(file);
-                
-                // 同じファイルを再選択できるようにリセット
-                fileInput.value = '';
+                } catch (err) {
+                    // Clipboard APIがサポートされていない場合のフォールバック
+                    const input = prompt('設定データを貼り付けてください:');
+                    if (input) {
+                        try {
+                            const importData = JSON.parse(input);
+                            
+                            // バリデーション
+                            if (!importData.prizes || !Array.isArray(importData.prizes)) {
+                                throw new Error('不正なデータ形式です');
+                            }
+
+                            // 各景品データのバリデーション
+                            const validPrizes = importData.prizes.filter(prize => 
+                                prize.color && typeof prize.color === 'string' &&
+                                prize.prize && typeof prize.prize === 'string'
+                            );
+
+                            if (validPrizes.length === 0) {
+                                throw new Error('有効な景品データがありません');
+                            }
+
+                            // 設定を保存してリロード
+                            localStorage.setItem('stickPrizes', JSON.stringify(validPrizes));
+                            alert(`${validPrizes.length}個の景品設定をインポートしました。ページをリロードして反映します。`);
+                            window.location.reload();
+                        } catch (error) {
+                            alert('インポートに失敗しました: ' + error.message);
+                        }
+                    }
+                }
             });
         })();
     </script>
