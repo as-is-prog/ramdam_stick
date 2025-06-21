@@ -25,6 +25,171 @@
             text-align: center;
         }
 
+        /* 設定ボタン */
+        #settings-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #settings-btn:hover {
+            background: #2980b9;
+        }
+
+        /* 設定モーダル */
+        #settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        #settings-modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .prize-settings {
+            margin-bottom: 20px;
+        }
+
+        .prize-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .color-input {
+            width: 50px;
+            height: 30px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .prize-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .add-prize-btn, .remove-prize-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-prize-btn {
+            background: #2ecc71;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .remove-prize-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .save-settings-btn {
+            width: 100%;
+            padding: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .save-settings-btn:hover {
+            background: #2980b9;
+        }
+
+        /* エクスポート/インポートボタン */
+        .export-import-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .export-btn, .import-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .export-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .export-btn:hover {
+            background: #229954;
+        }
+
+        .import-btn {
+            background: #8e44ad;
+            color: white;
+        }
+
+        .import-btn:hover {
+            background: #7d3c98;
+        }
+
+        .file-input {
+            display: none;
+        }
+
         h1 {
             margin-bottom: 6px;
             font-size: 22px;
@@ -96,39 +261,106 @@
             background: var(--tip-color);
             border-radius: 2px 2px 0 0;
         }
+
+        /* 結果表示 */
+        #result-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            display: none;
+            z-index: 2000;
+        }
+
+        #result-display.show {
+            display: block;
+        }
+
+        #result-display h2 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        #result-display .prize-name {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        #result-display button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 
 <body>
+    <button id="settings-btn">設定</button>
     <h1>色を予想してから1本クリック！</h1>
     <div id="legend"></div>
     <div id="tray"></div>
 
+    <!-- 設定モーダル -->
+    <div id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>割り箸の色と景品の設定</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="prize-settings" id="prize-list">
+                <!-- 動的に生成 -->
+            </div>
+            <button class="add-prize-btn" id="add-prize">色と景品を追加</button>
+            <button class="save-settings-btn" id="save-settings">設定を保存</button>
+            <div class="export-import-buttons">
+                <button class="export-btn" id="export-settings">設定をエクスポート</button>
+                <button class="import-btn" id="import-settings">設定をインポート</button>
+                <input type="file" id="file-input" class="file-input" accept=".json">
+            </div>
+        </div>
+    </div>
+
+    <!-- 結果表示 -->
+    <div id="result-display">
+        <h2>結果</h2>
+        <div class="prize-name" id="prize-name"></div>
+        <button onclick="window.location.reload()">もう一度</button>
+    </div>
+
     <script>
         (() => {
-            /* ── 誰でも識別しやすいベーシック 6 色 ── */
-            const palette = [
-                '#e74c3c', // 赤
-                '#3498db', // 青
-                '#f1c40f', // 黄
-                '#CCCCCC', // 白
-                '#e74c3c', // 赤
-                '#3498db', // 青
-                '#f1c40f', // 黄
-                '#CCCCCC', // 白
+            /* ── デフォルトの設定 ── */
+            const defaultPrizes = [
+                { color: '#e74c3c', prize: '大当たり！' },
+                { color: '#3498db', prize: '当たり' },
+                { color: '#f1c40f', prize: '小当たり' },
+                { color: '#CCCCCC', prize: 'はずれ' },
+                { color: '#e74c3c', prize: '大当たり！' },
+                { color: '#3498db', prize: '当たり' },
+                { color: '#f1c40f', prize: '小当たり' },
+                { color: '#CCCCCC', prize: 'はずれ' }
             ];
 
-            const NUM_STICKS = palette.length;        // 何本で遊ぶか
+            /* ── 設定の読み込み ── */
+            let prizes = JSON.parse(localStorage.getItem('stickPrizes')) || defaultPrizes;
+            const palette = prizes.map(p => p.color);
+            const prizeNames = prizes.map(p => p.prize);
+            const NUM_STICKS = palette.length;
 
-            /* 足りなければ自動で色を補充 */
-            while (palette.length < NUM_STICKS) {
-                const hue = Math.floor(Math.random() * 360);
-                palette.push(`hsl(${hue} 70% 50%)`);
-            }
-
-            /* ── パレット表示（順序固定） ── */
+            /* ── パレット表示（重複を除いた色のみ） ── */
             const legend = document.getElementById('legend');
-            palette.slice(0, NUM_STICKS / 2).forEach(col => {
+            const uniqueColors = [...new Set(palette)];
+            uniqueColors.forEach(col => {
                 const d = document.createElement('span');
                 d.className = 'dot';
                 d.style.background = col;
@@ -170,7 +402,15 @@
                     if (alreadyPicked || stick.classList.contains('revealed')) return;
                     reveal(stick);
                     alreadyPicked = true;      // 一度開いたら他の棒は選べない
-                    /* 結果を知らせたい場合はここで alert などを足して下さい */
+                    
+                    // 結果を表示
+                    setTimeout(() => {
+                        const resultDisplay = document.getElementById('result-display');
+                        const prizeNameEl = document.getElementById('prize-name');
+                        prizeNameEl.textContent = prizeNames[idx];
+                        prizeNameEl.style.color = color;
+                        resultDisplay.classList.add('show');
+                    }, 800);
                 });
             });
 
@@ -183,6 +423,153 @@
                         .getPropertyValue('--tip-height');
                 });
             }
+
+            /* ── 設定画面の処理 ── */
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeBtn = document.querySelector('.close-btn');
+            const prizeListEl = document.getElementById('prize-list');
+            const addPrizeBtn = document.getElementById('add-prize');
+            const saveSettingsBtn = document.getElementById('save-settings');
+
+            // 設定画面を開く
+            settingsBtn.addEventListener('click', () => {
+                loadPrizeSettings();
+                settingsModal.classList.add('active');
+            });
+
+            // 設定画面を閉じる
+            closeBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+            });
+
+            // モーダル外クリックで閉じる
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.remove('active');
+                }
+            });
+
+            // 設定を読み込んで表示
+            function loadPrizeSettings() {
+                const currentPrizes = JSON.parse(localStorage.getItem('stickPrizes')) || defaultPrizes;
+                prizeListEl.innerHTML = '';
+                currentPrizes.forEach((prize, index) => {
+                    addPrizeItem(prize.color, prize.prize, index);
+                });
+            }
+
+            // 景品アイテムを追加
+            function addPrizeItem(color, prize, index) {
+                const item = document.createElement('div');
+                item.className = 'prize-item';
+                item.innerHTML = `
+                    <input type="color" class="color-input" value="${color}" data-index="${index}">
+                    <input type="text" class="prize-input" value="${prize}" placeholder="景品名" data-index="${index}">
+                    <button class="remove-prize-btn" data-index="${index}">削除</button>
+                `;
+                prizeListEl.appendChild(item);
+
+                // 削除ボタンのイベント
+                item.querySelector('.remove-prize-btn').addEventListener('click', () => {
+                    item.remove();
+                });
+            }
+
+            // 新しい景品を追加
+            addPrizeBtn.addEventListener('click', () => {
+                addPrizeItem('#000000', '', prizeListEl.children.length);
+            });
+
+            // 設定を保存
+            saveSettingsBtn.addEventListener('click', () => {
+                const newPrizes = [];
+                const colorInputs = prizeListEl.querySelectorAll('.color-input');
+                const prizeInputs = prizeListEl.querySelectorAll('.prize-input');
+
+                for (let i = 0; i < colorInputs.length; i++) {
+                    const color = colorInputs[i].value;
+                    const prize = prizeInputs[i].value || 'なし';
+                    newPrizes.push({ color, prize });
+                }
+
+                if (newPrizes.length > 0) {
+                    localStorage.setItem('stickPrizes', JSON.stringify(newPrizes));
+                    alert('設定を保存しました。ページをリロードして反映します。');
+                    window.location.reload();
+                } else {
+                    alert('最低1つは景品を設定してください。');
+                }
+            });
+
+            /* ── エクスポート/インポート機能 ── */
+            const exportBtn = document.getElementById('export-settings');
+            const importBtn = document.getElementById('import-settings');
+            const fileInput = document.getElementById('file-input');
+
+            // エクスポート機能
+            exportBtn.addEventListener('click', () => {
+                const currentPrizes = JSON.parse(localStorage.getItem('stickPrizes')) || defaultPrizes;
+                const exportData = {
+                    version: '1.0',
+                    prizes: currentPrizes,
+                    exportedAt: new Date().toISOString()
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `stick-prizes-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // インポートボタンクリック時
+            importBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // ファイル選択時の処理
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const importData = JSON.parse(event.target.result);
+                        
+                        // バリデーション
+                        if (!importData.prizes || !Array.isArray(importData.prizes)) {
+                            throw new Error('不正なファイル形式です');
+                        }
+
+                        // 各景品データのバリデーション
+                        const validPrizes = importData.prizes.filter(prize => 
+                            prize.color && typeof prize.color === 'string' &&
+                            prize.prize && typeof prize.prize === 'string'
+                        );
+
+                        if (validPrizes.length === 0) {
+                            throw new Error('有効な景品データがありません');
+                        }
+
+                        // 設定を保存してリロード
+                        localStorage.setItem('stickPrizes', JSON.stringify(validPrizes));
+                        alert(`${validPrizes.length}個の景品設定をインポートしました。ページをリロードして反映します。`);
+                        window.location.reload();
+                    } catch (error) {
+                        alert('インポートに失敗しました: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+                
+                // 同じファイルを再選択できるようにリセット
+                fileInput.value = '';
+            });
         })();
     </script>
 </body>
