@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1本だけオープン・カラフル割り箸くじ</title>
     <style>
         :root {
@@ -10,6 +11,15 @@
             --stick-height: 240px;
             --tip-height: 50px;
             --body-color: #deb887;
+        }
+
+        /* モバイル用の変数 */
+        @media (max-width: 768px) {
+            :root {
+                --stick-width: 30px;
+                --stick-height: 180px;
+                --tip-height: 40px;
+            }
         }
 
         html,
@@ -37,6 +47,13 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            #settings-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
         }
 
         #settings-btn:hover {
@@ -71,6 +88,14 @@
             overflow-y: auto;
         }
 
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+                max-height: 90vh;
+            }
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -99,6 +124,26 @@
             gap: 10px;
             margin-bottom: 10px;
             align-items: center;
+        }
+
+        @media (max-width: 480px) {
+            .prize-item {
+                flex-wrap: wrap;
+            }
+
+            .prize-input {
+                width: 100%;
+                order: 2;
+            }
+
+            .color-input {
+                order: 1;
+            }
+
+            .remove-prize-btn {
+                order: 1;
+                margin-left: auto;
+            }
         }
 
         .color-input {
@@ -159,6 +204,12 @@
             margin-top: 20px;
         }
 
+        @media (max-width: 480px) {
+            .export-import-buttons {
+                flex-direction: column;
+            }
+        }
+
         .export-btn, .import-btn {
             flex: 1;
             padding: 10px;
@@ -195,11 +246,20 @@
             font-size: 22px;
         }
 
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+        }
+
         /* ── 賭け用ドット ── */
         #legend {
             display: flex;
             gap: 10px;
             margin-bottom: 22px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .dot {
@@ -210,12 +270,42 @@
             box-shadow: 0 0 2px rgba(0, 0, 0, .25);
         }
 
+        @media (max-width: 768px) {
+            #legend {
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .dot {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
         /* ── 割り箸トレイ ── */
         #tray {
             display: flex;
             gap: 14px;
             perspective: 800px;
             user-select: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            #tray {
+                gap: 10px;
+                max-width: 100%;
+                padding: 0 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #tray {
+                gap: 8px;
+            }
         }
 
         /* ── 割り箸本体 ── */
@@ -275,6 +365,23 @@
             text-align: center;
             display: none;
             z-index: 2000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            #result-display {
+                padding: 20px;
+                width: 85%;
+            }
+
+            #result-display h2 {
+                font-size: 24px;
+            }
+
+            #result-display .prize-name {
+                font-size: 28px;
+            }
         }
 
         #result-display.show {
@@ -396,8 +503,8 @@
             <div class="body"></div>`;
                 tray.appendChild(stick);
 
-                /* クリックで自分だけオープン */
-                stick.addEventListener('click', () => {
+                /* クリックで自分だけオープン（タッチデバイス対応） */
+                const handleStickClick = () => {
                     if (alreadyPicked) window.location.reload();
                     if (alreadyPicked || stick.classList.contains('revealed')) return;
                     reveal(stick);
@@ -411,6 +518,12 @@
                         prizeNameEl.style.color = color;
                         resultDisplay.classList.add('show');
                     }, 800);
+                };
+
+                stick.addEventListener('click', handleStickClick);
+                stick.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleStickClick();
                 });
             });
 
